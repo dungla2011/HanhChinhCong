@@ -3,97 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hành Chính Công - Dịch Vụ Công Trực Tuyến</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Hành Chính Công - Danh Sách Các Trang</title>
+    <link rel="stylesheet" href="styles-index.css">
 </head>
 <body>
     <!-- Header -->
     <header class="header">
-        <nav class="navbar">
-            <div class="container">
-                <div class="logo">Hành Chính Công</div>
-                <ul class="nav-links">
-                    <li><a href="#home">Trang Chủ</a></li>
-                    <li><a href="#services">Dịch Vụ</a></li>
-                    <li><a href="#about">Về Chúng Tôi</a></li>
-                    <li><a href="#contact">Liên Hệ</a></li>
-                </ul>
-            </div>
-        </nav>
+        <div class="container">
+            <div class="logo">Hành Chính Công - Quản Lý Trang</div>
+        </div>
     </header>
 
-    <!-- Hero Section -->
-    <section id="home" class="hero">
-        <div class="hero-content">
-            <h1>Dịch Vụ Công Trực Tuyến</h1>
-            <p>Giải quyết thủ tục hành chính nhanh chóng, tiện lợi</p>
-            <button class="cta-btn">Khám Phá Dịch Vụ</button>
-        </div>
-    </section>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <h2>Danh Sách Trang</h2>
+            <ul class="page-list" id="pageList">
+                <!-- Danh sách sẽ được sinh động tạo -->
+            </ul>
+        </aside>
 
-    <!-- Services Section -->
-    <section id="services" class="services">
-        <div class="container">
-            <h2>Các Dịch Vụ Chính</h2>
-            <div class="services-grid">
-                <div class="service-card">
-                    <div class="service-icon">📋</div>
-                    <h3>Cấp Giấy Chứng Thực</h3>
-                    <p>Cấp các loại giấy chứng thực tài liệu nhanh chóng</p>
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="welcome-section" id="welcomeSection">
+                <h1>Chào Mừng</h1>
+                <p>Chọn một trang từ danh sách bên trái để xem preview</p>
+            </div>
+
+            <div class="page-viewer" id="pageViewer" style="display: none;">
+                <div class="page-header">
+                    <h2 id="pageTitle"></h2>
+                    <a id="pageLink" href="#" target="_blank" class="open-btn">Mở trong Tab Mới</a>
                 </div>
-                <div class="service-card">
-                    <div class="service-icon">📝</div>
-                    <h3>Nộp Hồ Sơ Online</h3>
-                    <p>Nộp hồ sơ và tài liệu trực tuyến mà không cần tới trực tiếp</p>
-                </div>
-                <div class="service-card">
-                    <div class="service-icon">🔍</div>
-                    <h3>Tra Cứu Kết Quả</h3>
-                    <p>Tra cứu tình trạng hồ sơ của bạn bất kỳ lúc nào</p>
-                </div>
-                <div class="service-card">
-                    <div class="service-icon">💬</div>
-                    <h3>Hỗ Trợ Tư Vấn</h3>
-                    <p>Nhận tư vấn từ các chuyên gia hành chính công</p>
+                <div class="iframe-container">
+                    <iframe id="pageFrame" src="" title="Page Preview"></iframe>
                 </div>
             </div>
-        </div>
-    </section>
-
-    <!-- About Section -->
-    <section id="about" class="about">
-        <div class="container">
-            <h2>Về Chúng Tôi</h2>
-            <p>Chúng tôi cung cấp các dịch vụ hành chính công trực tuyến đáng tin cậy, giúp công dân và doanh nghiệp tiết kiệm thời gian và công sức trong quá trình thực hiện các thủ tục hành chính.</p>
-            <div class="stats">
-                <div class="stat">
-                    <h4>10,000+</h4>
-                    <p>Khách Hàng</p>
-                </div>
-                <div class="stat">
-                    <h4>50+</h4>
-                    <p>Dịch Vụ</p>
-                </div>
-                <div class="stat">
-                    <h4>99%</h4>
-                    <p>Hài Lòng</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Contact Section -->
-    <section id="contact" class="contact">
-        <div class="container">
-            <h2>Liên Hệ Với Chúng Tôi</h2>
-            <form class="contact-form">
-                <input type="text" placeholder="Họ và Tên" required>
-                <input type="email" placeholder="Email" required>
-                <textarea placeholder="Nội dung tin nhắn" rows="5" required></textarea>
-                <button type="submit" class="submit-btn">Gửi Tin Nhắn</button>
-            </form>
-        </div>
-    </section>
+        </main>
+    </div>
 
     <!-- Footer -->
     <footer class="footer">
@@ -102,6 +49,6 @@
         </div>
     </footer>
 
-    <script src="script.js"></script>
+    <script src="script-index.js"></script>
 </body>
 </html>
