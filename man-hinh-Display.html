@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Display – Phòng chờ</title>
+<meta http-equiv="refresh" content="10" />
+<style>
+    body {
+        margin: 0;
+        background: #f2f4f8;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: #000;
+    }
+
+    /* Header / Logo */
+    .header {
+        background: #005bbb;
+        color: #fff;
+        padding: 20px 40px;
+        font-size: 48px;
+        text-align: left;
+        font-weight: bold;
+        letter-spacing: 1px;
+    }
+
+    /* Khối đang phục vụ chính */
+    .now-serving-box {
+        text-align: center;
+        padding: 50px 20px;
+    }
+
+    .title {
+        font-size: 72px;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+
+    .number-box {
+        display: inline-block;
+        padding: 40px 100px;
+        border-radius: 20px;
+        background: #ffffff;
+        box-shadow: 0 0 25px rgba(0,0,0,0.15);
+        font-size: 180px;
+        font-weight: bold;
+        color: #d40000;
+    }
+
+    /* Quầy - Nhân viên */
+    .info-box {
+        margin-top: 40px;
+        text-align: center;
+        font-size: 48px;
+        color: #333;
+    }
+
+    /* Marquee */
+    .marquee {
+        width: 100%;
+        background: #003f7f;
+        color: #fff;
+        padding: 15px 0;
+        font-size: 48px;
+        font-weight: bold;
+        white-space: nowrap;
+        overflow: hidden;
+        box-sizing: border-box;
+    }
+
+    .marquee span {
+        display: inline-block;
+        animation: scroll 14s linear infinite;
+        padding-left: 100%;
+    }
+
+    @keyframes scroll {
+        from { transform: translateX(0); }
+        to { transform: translateX(-100%); }
+    }
+
+    /* Footer */
+    .footer {
+        background: #eaeaea;
+        padding: 20px 40px;
+        font-size: 32px;
+        display: flex;
+        justify-content: space-between;
+        color: #444;
+        border-top: 2px solid #ccc;
+    }
+</style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="header">
+        TRUNG TÂM PHỤC VỤ HÀNH CHÍNH CÔNG
+    </div>
+
+    <!-- Số đang phục vụ -->
+    <div class="now-serving-box">
+        <div class="title">SỐ ĐANG PHỤC VỤ</div>
+        <div class="number-box">A123</div>
+
+        <div class="info-box">
+            Quầy: <strong>02</strong> — Nhân viên: <strong>Nguyễn Văn A</strong>
+        </div>
+    </div>
+
+    <!-- Danh sách sắp tới (chạy ngang) -->
+    <div class="marquee">
+        <span>
+            Sắp tới: A124 — A125 — B201 — B202 — C300 — C301 — ...
+        </span>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <div>© UBND TỈNH — TRUNG TÂM PHỤC VỤ HÀNH CHÍNH CÔNG</div>
+        <div>Thời gian hệ thống: 10:24:08</div>
+        <div>Trạng thái mạng: Online</div>
+    </div>
+
+</body>
+</html>
