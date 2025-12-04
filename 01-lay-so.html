@@ -180,7 +180,14 @@ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       <div class="sub">Màn hình: <strong id="timeNow"></strong></div>
     </header>
 
-   
+    <!-- Controls: (not required) -->
+    <div class="controls" style="margin-top:8px; display: none;">
+      <label for="serviceSelect">Chọn dịch vụ / quầy:</label>
+      <select id="serviceSelect"></select>
+
+      <label for="padding">Số chữ số:</label>
+      <input id="padding" type="number" min="1" max="6" value="3" style="width:88px;">
+    </div>
 
     <!-- Grid of counters -->
     <div class="counters" id="countersContainer" style="margin-top:8px;"></div>
