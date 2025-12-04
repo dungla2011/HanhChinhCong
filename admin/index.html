@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin Kiosk - Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {background:#f5f7fb}
+    .sidebar {height:100vh; position:fixed; width:260px;}
+    .content {margin-left:280px; padding:24px}
+    .kiosk-preview {background:#fff; border:1px solid #e3e6ef; border-radius:8px; padding:16px}
+    .ticket {font-family:monospace; padding:12px; border:1px dashed #ccd; background:#fafafa; border-radius:6px}
+  </style>
+</head>
+<body>
+  <div class="d-flex">
+    <nav class="sidebar bg-white border-end p-3">
+      <h5 class="mb-4">Kiosk Admin</h5>
+      <ul class="nav flex-column">
+        <li class="nav-item"><a class="nav-link active" href="#dashboard">Tổng quan</a></li>
+        <li class="nav-item"><a class="nav-link" href="#queues">Quản lý số</a></li>
+        <li class="nav-item"><a class="nav-link" href="#kiosks">Quản lý Kiosk</a></li>
+        <li class="nav-item"><a class="nav-link" href="#templates">Giao diện</a></li>
+        <li class="nav-item"><a class="nav-link" href="#users">Người dùng</a></li>
+        <li class="nav-item"><a class="nav-link" href="#logs">Nhật ký</a></li>
+        <li class="nav-item mt-3"><button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#addQueueModal">Thêm chức năng mới</button></li>
+      </ul>
+      <div class="mt-4 text-muted small">Phiên bản: 1.0.0</div>
+    </nav>
+
+    <main class="content flex-grow-1">
+      <section id="dashboard">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h3>Dashboard</h3>
+          <div>
+            <button class="btn btn-outline-secondary me-2" id="exportBtn">Export JSON</button>
+            <input type="file" id="importFile" accept="application/json" style="display:none">
+            <button class="btn btn-outline-secondary" id="importBtn">Import JSON</button>
+          </div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-4">
+            <div class="card p-3">
+              <h6>Số đang chờ</h6>
+              <div class="display-6" id="waitingCount">0</div>
+              <small class="text-muted">Tổng số đang chờ xử lý</small>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card p-3">
+              <h6>Số đã phục vụ hôm nay</h6>
+              <div class="display-6" id="servedCount">0</div>
+              <small class="text-muted">Đã gọi / in</small>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card p-3">
+              <h6>Kiosk trực tuyến</h6>
+              <div class="display-6" id="onlineKiosks">0</div>
+              <small class="text-muted">Trạng thái kết nối</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="row mt-4">
+          <div class="col-lg-8">
+            <div class="card p-3">
+              <h5>Danh sách chức năng / quầy</h5>
+              <div class="table-responsive">
+                <table class="table table-sm table-hover" id="queuesTable">
+                  <thead>
+                    <tr>
+                      <th>Id</th>
+                      <th>Tên chức năng</th>
+                      <th>Mã</th>
+                      <th>Ưu tiên</th>
+                      <th>Hành động</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-4">
+            <div class="card p-3">
+              <h5>Preview Kiosk</h5>
+              <div class="kiosk-preview mt-2">
+                <div class="text-center mb-2"><strong id="previewTitle">Chọn chức năng</strong></div>
+                <div id="previewDesc" class="text-muted small">Nội dung mô tả chức năng sẽ hiển thị ở đây.</div>
+                <hr>
+                <div class="ticket mt-2" id="ticketSample">-- Vé mẫu --</div>
+                <div class="mt-3 text-end">
+                  <button class="btn btn-sm btn-success" id="printSample">In thử</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="card p-3 mt-3">
+              <h6>Cấu hình chung</h6>
+              <div class="mb-2">
+                <label class="form-label small">Thời gian chờ (giây)</label>
+                <input type="number" id="timeoutSec" class="form-control form-control-sm" value="30">
+              </div>
+              <button class="btn btn-sm btn-primary" id="saveSettings">Lưu cấu hình</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="kiosks" class="mt-5">
+        <h4>Quản lý Kiosk</h4>
+        <div class="card p-3 mt-2">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>Danh sách Kiosk</div>
+            <button class="btn btn-sm btn-primary" id="addKioskBtn">Thêm Kiosk</button>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-sm" id="kioskTable">
+              <thead><tr><th>ID</th><th>Tên</th><th>IP</th><th>Trạng thái</th><th>Hành động</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="templates" class="mt-5">
+        <h4>Giao diện & Nội dung</h4>
+        <div class="card p-3 mt-2">
+          <div class="mb-2">
+            <label class="form-label">Tiêu đề màn hình</label>
+            <input class="form-control" id="uiTitle" placeholder="VD: Xin chào công dân">
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Mô tả ngắn</label>
+            <textarea class="form-control" id="uiDesc" rows="3"></textarea>
+          </div>
+          <button class="btn btn-sm btn-success" id="applyUi">Áp dụng</button>
+        </div>
+      </section>
+
+      <section id="users" class="mt-5">
+        <h4>Người dùng quản trị</h4>
+        <div class="card p-3 mt-2">
+          <div class="d-flex justify-content-between mb-2">
+            <div>Danh sách</div>
+            <button class="btn btn-sm btn-primary" id="addUserBtn">Thêm người dùng</button>
+          </div>
+          <ul class="list-group" id="usersList"></ul>
+        </div>
+      </section>
+
+      <section id="logs" class="mt-5">
+        <h4>Nhật ký hoạt động</h4>
+        <div class="card p-3 mt-2">
+          <pre id="logBox" style="height:200px; overflow:auto; background:#111; color:#0f0; padding:12px; border-radius:6px;">-- Không có bản ghi --</pre>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Modals -->
+  <div class="modal fade" id="addQueueModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Thêm chức năng / quầy</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <div class="mb-2"><label class="form-label">Tên chức năng</label><input id="newQueueName" class="form-control"></div>
+          <div class="mb-2"><label class="form-label">Mã</label><input id="newQueueCode" class="form-control"></div>
+          <div class="mb-2"><label class="form-label">Ưu tiên (số)</label><input id="newQueuePriority" type="number" class="form-control" value="1"></div>
+        </div>
+        <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button><button class="btn btn-primary" id="createQueue">Tạo</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="addKioskModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Thêm Kiosk</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <div class="mb-2"><label class="form-label">Tên</label><input id="kioskName" class="form-control"></div>
+          <div class="mb-2"><label class="form-label">IP / Host</label><input id="kioskHost" class="form-control"></div>
+        </div>
+        <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button><button class="btn btn-primary" id="createKiosk">Tạo</button></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Demo in-memory store
+    const store = { queues: [], kiosks: [], users: [{id:1,name:'admin'}], served:0, logs:[] };
+    let nextId = 1;
+
+    // Helpers
+    function renderQueues() {
+      const tbody = document.querySelector('#queuesTable tbody'); tbody.innerHTML='';
+      store.queues.forEach(q => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${q.id}</td><td>${q.name}</td><td>${q.code}</td><td>${q.priority}</td><td><button class="btn btn-sm btn-outline-primary" onclick="selectQueue(${q.id})">Xem</button> <button class="btn btn-sm btn-danger" onclick="deleteQueue(${q.id})">Xóa</button></td>`;
+        tbody.appendChild(tr);
+      });
+      document.getElementById('waitingCount').innerText = store.queues.length;
+    }
+
+    function renderKiosks(){
+      const tbody = document.querySelector('#kioskTable tbody'); tbody.innerHTML='';
+      store.kiosks.forEach(k=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${k.id}</td><td>${k.name}</td><td>${k.host}</td><td>${k.online? 'Online' : 'Offline'}</td><td><button class="btn btn-sm btn-outline-secondary" onclick="pingKiosk(${k.id})">Ping</button> <button class="btn btn-sm btn-danger" onclick="removeKiosk(${k.id})">Xóa</button></td>`;
+        tbody.appendChild(tr);
+      });
+      document.getElementById('onlineKiosks').innerText = store.kiosks.filter(k=>k.online).length;
+    }
+
+    function renderUsers(){
+      const ul = document.getElementById('usersList'); ul.innerHTML='';
+      store.users.forEach(u=>{ const li = document.createElement('li'); li.className='list-group-item d-flex justify-content-between align-items-center'; li.innerHTML = `<div>${u.name} <small class="text-muted">(id:${u.id})</small></div><div><button class="btn btn-sm btn-outline-danger" onclick="removeUser(${u.id})">Xóa</button></div>`; ul.appendChild(li); });
+    }
+
+    function log(msg){ store.logs.push({t:new Date().toISOString(),m:msg}); const box = document.getElementById('logBox'); box.innerText = store.logs.map(l=>`[${l.t}] ${l.m}`).reverse().join('\n'); }
+
+    // Actions
+    document.getElementById('createQueue').addEventListener('click', ()=>{
+      const name = document.getElementById('newQueueName').value.trim();
+      const code = document.getElementById('newQueueCode').value.trim();
+      const pr = parseInt(document.getElementById('newQueuePriority').value)||1;
+      if(!name||!code){alert('Nhập tên và mã');return}
+      const q = {id: nextId++, name, code, priority:pr}; store.queues.push(q); renderQueues(); log(`Tạo chức năng ${name}`);
+      const modal = bootstrap.Modal.getInstance(document.getElementById('addQueueModal')); modal.hide();
+    });
+
+    window.deleteQueue = function(id){ store.queues = store.queues.filter(q=>q.id!==id); renderQueues(); log(`Xóa chức năng id=${id}`); }
+    window.selectQueue = function(id){ const q = store.queues.find(x=>x.id===id); if(!q) return; document.getElementById('previewTitle').innerText = q.name; document.getElementById('previewDesc').innerText = `Mã: ${q.code} — Ưu tiên: ${q.priority}`; document.getElementById('ticketSample').innerText = `SỐ: ${String(q.code).toUpperCase()}-${Math.floor(Math.random()*900+100)}\nThời gian: ${new Date().toLocaleString()}`; }
+
+    // Kiosk
+    document.getElementById('addKioskBtn').addEventListener('click', ()=>{ new bootstrap.Modal(document.getElementById('addKioskModal')).show(); });
+    document.getElementById('createKiosk').addEventListener('click', ()=>{
+      const name = document.getElementById('kioskName').value.trim(); const host = document.getElementById('kioskHost').value.trim(); if(!name||!host){alert('Nhập tên và host');return}
+      const k = {id: nextId++, name, host, online: Math.random()>0.3}; store.kiosks.push(k); renderKiosks(); log(`Thêm kiosk ${name} (${host})`);
+      const modal = bootstrap.Modal.getInstance(document.getElementById('addKioskModal')); modal.hide();
+    });
+    window.pingKiosk = function(id){ const k = store.kiosks.find(x=>x.id===id); if(!k) return; k.online = !k.online; renderKiosks(); log(`Ping kiosk ${k.name}: ${k.online? 'online':'offline'}`); }
+    window.removeKiosk = function(id){ store.kiosks = store.kiosks.filter(k=>k.id!==id); renderKiosks(); log(`Xóa kiosk id=${id}`); }
+
+    // Users
+    document.getElementById('addUserBtn').addEventListener('click', ()=>{ const name = prompt('Tên người dùng'); if(!name) return; const u={id:nextId++,name}; store.users.push(u); renderUsers(); log(`Tạo user ${name}`); });
+    window.removeUser = function(id){ store.users = store.users.filter(u=>u.id!==id); renderUsers(); log(`Xóa user id=${id}`); }
+
+    // Settings
+    document.getElementById('saveSettings').addEventListener('click', ()=>{ const t=document.getElementById('timeoutSec').value; localStorage.setItem('kiosk_timeout', t); alert('Lưu cấu hình thành công'); log(`Lưu timeout = ${t}s`); });
+
+    // Import / Export
+    document.getElementById('exportBtn').addEventListener('click', ()=>{
+      const data = JSON.stringify(store, null, 2); const blob = new Blob([data], {type:'application/json'}); const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='kiosk_admin_export.json'; a.click(); URL.revokeObjectURL(url); log('Export JSON');
+    });
+    document.getElementById('importBtn').addEventListener('click', ()=> document.getElementById('importFile').click());
+    document.getElementById('importFile').addEventListener('change', (e)=>{
+      const f = e.target.files[0]; if(!f) return; const reader = new FileReader(); reader.onload = ()=>{ try{ const obj = JSON.parse(reader.result); if(obj.queues) { store.queues = obj.queues; store.kiosks = obj.kiosks||[]; store.users = obj.users||store.users; renderQueues(); renderKiosks(); renderUsers(); log('Import JSON thành công'); alert('Import thành công'); } else { alert('File không hợp lệ'); } }catch(err){ alert('Đọc file thất bại'); }}; reader.readAsText(f);
+    });
+
+    // Print sample
+    document.getElementById('printSample').addEventListener('click', ()=>{
+      const w = window.open('','_blank','width=320,height=480'); w.document.write(`<pre style="font-family:monospace">${document.getElementById('ticketSample').innerText}</pre>`); w.print(); w.close(); log('In vé mẫu');
+    });
+
+    // Init demo data
+    (function init(){ store.queues = [ {id:nextId++, name:'Nộp hồ sơ', code:'NH', priority:1}, {id:nextId++, name:'Bốc số', code:'BS', priority:2}, {id:nextId++, name:'Hướng dẫn', code:'HD', priority:3} ]; store.kiosks = [{id:nextId++,name:'Kiosk A',host:'192.168.1.10',online:true},{id:nextId++,name:'Kiosk B',host:'192.168.1.11',online:false}]; renderQueues(); renderKiosks(); renderUsers(); log('Hệ thống khởi tạo'); })();
+  </script>
+</body>
+</html>
