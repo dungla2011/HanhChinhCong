@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Quầy gọi số – Theo quầy</title>
+<style>
+    body {
+        margin: 0;
+        background: #eef2f6;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    header {
+        background: #005bbb;
+        padding: 20px 30px;
+        color: #fff;
+        font-size: 32px;
+        font-weight: bold;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    header .info {
+        font-size: 22px;
+        font-weight: normal;
+    }
+
+    .container {
+        padding: 30px;
+        max-width: 1600px;
+        margin: auto;
+    }
+
+    .current-box {
+        background: #ffffff;
+        padding: 30px;
+        border-radius: 16px;
+        box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .current-title {
+        font-size: 36px;
+        color: #444;
+        margin-bottom: 15px;
+    }
+
+    .current-number {
+        font-size: 140px;
+        font-weight: bold;
+        color: #d40000;
+        padding: 20px 0;
+    }
+
+    .control-buttons {
+        margin-top: 30px;
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+    }
+
+    .btn {
+        padding: 18px 40px;
+        font-size: 32px;
+        border: none;
+        border-radius: 16px;
+        cursor: pointer;
+        font-weight: bold;
+        color: white;
+        transition: 0.2s;
+    }
+
+    .btn-call    { background: #28a745; }
+    .btn-recall  { background: #ffc107; color: #000; }
+    .btn-next    { background: #007bff; }
+    .btn-skip    { background: #dc3545; }
+
+    .btn:hover { opacity: 0.85; }
+
+    /* Danh sách hàng chờ */
+    .queue-box, .history-box {
+        background: #ffffff;
+        padding: 25px;
+        border-radius: 16px;
+        box-shadow: 0 0 12px rgba(0,0,0,0.08);
+        margin-top: 40px;
+    }
+
+    .box-title {
+        font-size: 32px;
+        margin-bottom: 20px;
+        font-weight: bold;
+        color: #333;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 28px;
+    }
+
+    th, td {
+        padding: 14px;
+        border-bottom: 1px solid #ddd;
+        text-align: left;
+    }
+
+    th {
+        background: #005bbb;
+        color: white;
+    }
+</style>
+</head>
+<body>
+
+<header>
+    <div>Quầy 05 – Gọi Số</div>
+    <div class="info">Nhân viên: Trần Thị B</div>
+</header>
+
+<div class="container">
+
+    <!-- Số đang phục vụ -->
+    <div class="current-box">
+        <div class="current-title">SỐ ĐANG PHỤC VỤ TẠI QUẦY 05</div>
+        <div class="current-number">B203</div>
+
+        <div class="control-buttons">
+            <button class="btn btn-call">Gọi số</button>
+            <button class="btn btn-recall">Gọi lại</button>
+            <button class="btn btn-next">Tiếp theo</button>
+            <button class="btn btn-skip">Bỏ qua</button>
+        </div>
+    </div>
+
+    <!-- Danh sách sắp tới của riêng quầy -->
+    <div class="queue-box">
+        <div class="box-title">Số đang chờ tại Quầy 05</div>
+        <table>
+            <tr>
+                <th>Số</th>
+                <th>Loại</th>
+                <th>Thời gian lấy</th>
+            </tr>
+            <tr><td>B204</td><td>Tư vấn</td><td>10:32</td></tr>
+            <tr><td>B205</td><td>Tư vấn</td><td>10:34</td></tr>
+            <tr><td>B206</td><td>Tư vấn</td><td>10:36</td></tr>
+        </table>
+    </div>
+
+    <!-- Lịch sử xử lý -->
+    <div class="history-box">
+        <div class="box-title">Lịch sử quầy 05</div>
+        <table>
+            <tr>
+                <th>Số</th>
+                <th>Kết quả</th>
+                <th>Thời gian</th>
+            </tr>
+            <tr><td>B201</td><td>Hoàn thành</td><td>10:20</td></tr>
+            <tr><td>B202</td><td>Hoàn thành</td><td>10:27</td></tr>
+            <tr><td>B203</td><td>Bỏ qua</td><td>10:29</td></tr>
+        </table>
+    </div>
+
+</div>
+
+</body>
+</html>
