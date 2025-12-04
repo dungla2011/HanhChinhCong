@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Kiosk Check-in DVC</title>
+<style>
+    body {
+       
+        background:#f0f4f7;
+        margin:0;
+        padding:0;
+        text-align:center;
+    }
+    .hidden { display:none; }
+
+    .container, .success-box {
+        max-width:520px;
+        margin:50px auto;
+        background:white;
+        padding:35px;
+        border-radius:20px;
+        box-shadow:0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    h1 { font-size:30px; color:#005baa; margin-bottom:10px; }
+    input {
+        width:93%;
+        padding:18px;
+        font-size:22px;
+        border:2px solid #ccc;
+        border-radius:12px;
+        margin-top:20px;
+    }
+    button {
+        width:100%;
+        margin-top:25px;
+        padding:18px;
+        background:#007bff;
+        border:none;
+        border-radius:12px;
+        font-size:22px;
+        color:white;
+        cursor:pointer;
+    }
+
+    .qr-area {
+        margin-top:30px;
+        padding:20px;
+        background:#eef4ff;
+        border-radius:12px;
+        border:2px dashed #007bff;
+    }
+
+    /* Success */
+    .success-bg { background:#e1ffe7; }
+    .success-icon {
+        font-size:80px;
+        color:#28a745;
+    }
+    .ticket {
+        margin-top:25px;
+        background:#f7fff9;
+        padding:20px;
+        border-left:6px solid #28a745;
+        text-align:left;
+        font-size:20px;
+        border-radius:10px;
+    }
+</style>
+</head>
+<body>
+
+<!-- ========== MÀN HÌNH CHECK-IN ========== -->
+<div id="checkin-screen" class="container">
+    <h1>CHECK-IN LỊCH HẸN</h1>
+    <p>Vui lòng nhập <b>Mã lịch hẹn</b> hoặc <b>Quét mã QR</b></p>
+
+    <input id="codeInput" type="text" placeholder="Nhập mã lịch hẹn...">
+
+    <button onclick="checkIn()">Check-in</button>
+
+    <div class="qr-area">
+        <p><b>Quét mã QR tại đây</b></p>
+        <img src="https://via.placeholder.com/200x200?text=QR+Scanner" alt="QR Scanner">
+    </div>
+</div>
+
+
+<!-- ========== MÀN HÌNH CHECK-IN THÀNH CÔNG ========== -->
+<div id="success-screen" class="success-box hidden success-bg">
+    <div class="success-icon">✔</div>
+    <h1>CHECK-IN THÀNH CÔNG</h1>
+    <p>Bạn đã xác nhận lịch hẹn trực tuyến.</p>
+
+    <div class="ticket">
+        <p><b>Mã lịch hẹn:</b> <span id="codeText"></span></p>
+        <p><b>Thời gian:</b> 09:30 - 04/12/2025</p>
+        <p><b>Quầy tiếp nhận:</b> Quầy 03</p>
+    </div>
+
+    <button onclick="goHome()">Quay lại trang chính</button>
+</div>
+
+<script>
+function checkIn() {
+    let code = document.getElementById("codeInput").value.trim();
+    if (code === "") {
+        alert("Vui lòng nhập mã lịch hẹn!");
+        return;
+    }
+
+    // Gán mã vào màn hình thành công
+    document.getElementById("codeText").textContent = code;
+
+    // Ẩn màn hình Check-in → Hiện màn hình Thành công
+    document.getElementById("checkin-screen").classList.add("hidden");
+    document.getElementById("success-screen").classList.remove("hidden");
+}
+
+function goHome() {
+    // Quay lại màn hình ban đầu
+    document.getElementById("success-screen").classList.add("hidden");
+    document.getElementById("checkin-screen").classList.remove("hidden");
+
+    // Xóa mã
+    document.getElementById("codeInput").value = "";
+}
+</script>
+
+</body>
+</html>

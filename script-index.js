@@ -25,7 +25,12 @@ const pages = [
         title: '05 - Hướng dẫn',
         file: '01-huong_dan.html'
     },
-    // {
+    {
+        id: 'chekc_in',
+        title: '06 - CHECK-IN LỊCH HẸN',
+        file: '01-check-in.html'
+    },
+    // {01-check-in.html
     //     id: 'trang-dang-phat-trien',
     //     title: '02 - Trang Đang Phát Triển',
     //     file: 'pages/02-page.html'
