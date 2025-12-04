@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Đặt lịch - Kiosk Dịch vụ công</title>
+  <style>
+    :root{--bg:#f4f7fb;--primary:#036;--accent:#0b5}
+    body{margin:0;font-family:Inter,system-ui,Arial;background:var(--bg);color:#024}
+    .container{max-width:980px;margin:24px auto;padding:18px;background:#fff;border-radius:12px;box-shadow:0 8px 24px rgba(2,6,23,0.08)}
+    h1{margin:0 0 8px 0}
+    .grid{display:grid;grid-template-columns:1fr 340px;gap:18px}
+    label{display:block;font-size:13px;margin-bottom:6px;color:#024}
+    input,select,textarea,button{font-size:15px;padding:10px;border-radius:8px;border:1px solid #e0e6ef;width:100%;box-sizing:border-box}
+    .card{padding:12px;border-radius:10px;background:#f9fbff;border:1px solid #eef3ff}
+    .time-slot{display:inline-block;padding:8px 10px;margin:6px 6px 0 0;border-radius:8px;border:1px solid #ddd;cursor:pointer}
+    .time-slot.selected{background:var(--primary);color:#fff;border-color:var(--primary)}
+    .btn-primary{background:linear-gradient(90deg,var(--primary),#0b8);color:#fff;border:none;padding:10px 14px;border-radius:10px;cursor:pointer}
+    .small{font-size:13px;color:#6a7886}
+    .note{font-size:13px;color:#666;margin-top:8px}
+    @media (max-width:900px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="container" role="main" aria-label="Đặt lịch kiosk">
+    <h1>Đặt lịch dịch vụ</h1>
+    <p class="small">Chọn dịch vụ, ngày và khung giờ. Bạn có thể in phiếu đặt lịch hoặc nhận mã QR.</p>
+
+    <div class="grid" style="margin-top:12px">
+      <section>
+        <div class="card">
+          <div style="margin-bottom:12px">
+            <label for="service">Dịch vụ</label>
+            <select id="service">
+              <option value="">-- Chọn dịch vụ --</option>
+              <option value="giahan">Gia hạn giấy tờ</option>
+              <option value="dangky">Đăng ký mới</option>
+              <option value="nopho">Nộp hồ sơ</option>
+              <option value="tuvan">Tư vấn</option>
+            </select>
+          </div>
+
+          <div style="display:flex;gap:12px;margin-bottom:12px">
+            <div style="flex:1">
+              <label for="date">Ngày</label>
+              <input type="date" id="date" />
+            </div>
+            <div style="width:140px">
+              <label for="people">Số lượng</label>
+              <select id="people"><option>1</option><option>2</option><option>3</option><option>4</option></select>
+            </div>
+          </div>
+
+          <div style="margin-bottom:12px">
+            <label>Khung giờ có thể chọn</label>
+            <div id="times" aria-live="polite" style="margin-top:6px"></div>
+            <div class="note">Các khung giờ có thể thay đổi tùy theo quầy và lịch.</div>
+          </div>
+
+          <div style="margin-bottom:12px">
+            <label for="name">Họ và tên</label>
+            <input id="name" placeholder="Nguyễn Văn A" />
+          </div>
+          <div style="margin-bottom:12px">
+            <label for="phone">Số điện thoại / Email</label>
+            <input id="phone" placeholder="0123xxxx hoặc email@ex.com" />
+          </div>
+
+          <div style="display:flex;gap:10px;justify-content:flex-end">
+            <button class="btn-primary" id="confirmBtn">Xác nhận đặt lịch</button>
+            <button class="btn-primary" id="clearBtn" style="background:#ccc;color:#024">Xóa</button>
+          </div>
+        </div>
+
+        <div style="margin-top:12px" class="small">Lưu ý: Vui lòng tới trước 10 phút so với khung giờ để làm thủ tục.</div>
+      </section>
+
+      <aside>
+        <div class="card">
+          <h3 style="margin-top:0">Tóm tắt đặt lịch</h3>
+          <div id="summary" class="small">Chưa có lịch đặt.</div>
+          <div style="margin-top:12px;display:flex;gap:8px">
+            <button id="printTicket" class="btn-primary">In phiếu</button>
+            <button id="showQR" class="btn-primary" style="background:#667eea">Hiện QR</button>
+          </div>
+          <div id="qrWrap" style="margin-top:12px;text-align:center"></div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h4 style="margin:0 0 8px 0">Lịch trống (7 ngày)</h4>
+          <div id="availableList" class="small"></div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- Simple QR generator (no external libs) -->
+  <script>
+    // Helpers
+    function formatDate(d){ const dt = new Date(d); return dt.toLocaleDateString(); }
+
+    // Generate time slots for a date (example: 08:00 - 16:00, 30-min slots)
+    function generateSlots(dateStr){
+      const slots = [];
+      const date = new Date(dateStr + 'T08:00:00');
+      const end = new Date(dateStr + 'T16:00:00');
+      while(date < end){
+        const hh = String(date.getHours()).padStart(2,'0');
+        const mm = String(date.getMinutes()).padStart(2,'0');
+        slots.push(hh+':'+mm);
+        date.setMinutes(date.getMinutes() + 30);
+      }
+      return slots;
+    }
+
+    const timesEl = document.getElementById('times');
+    const dateEl = document.getElementById('date');
+    const serviceEl = document.getElementById('service');
+    const summaryEl = document.getElementById('summary');
+    const availableList = document.getElementById('availableList');
+
+    // prefill date to today
+    const today = new Date();
+    dateEl.value = today.toISOString().slice(0,10);
+
+    function renderSlots(){
+      const dateVal = dateEl.value;
+      timesEl.innerHTML = '';
+      if(!dateVal) return;
+      const slots = generateSlots(dateVal);
+      slots.forEach(s=>{
+        const span = document.createElement('button');
+        span.type = 'button';
+        span.className = 'time-slot';
+        span.innerText = s;
+        span.onclick = ()=> selectSlot(s, span);
+        timesEl.appendChild(span);
+      });
+    }
+
+    let selected = {service:'',date:'',time:'',name:'',phone:'',people:1};
+
+    function selectSlot(time,el){
+      // deselect others
+      document.querySelectorAll('.time-slot').forEach(x=>x.classList.remove('selected'));
+      el.classList.add('selected');
+      selected.time = time;
+      updateSummary();
+    }
+
+    function updateSummary(){
+      selected.service = serviceEl.value;
+      selected.date = dateEl.value;
+      selected.name = document.getElementById('name').value.trim();
+      selected.phone = document.getElementById('phone').value.trim();
+      selected.people = document.getElementById('people').value;
+      if(!selected.service || !selected.date || !selected.time || !selected.name || !selected.phone){
+        summaryEl.innerText = 'Vui lòng chọn đủ: dịch vụ, ngày, khung giờ, họ tên và liên hệ.';
+        return;
+      }
+      summaryEl.innerHTML = `<strong>Dịch vụ:</strong> ${selected.service}<br><strong>Ngày:</strong> ${formatDate(selected.date)}<br><strong>Giờ:</strong> ${selected.time}<br><strong>Người:</strong> ${selected.name}<br><strong>Liên hệ:</strong> ${selected.phone}`;
+    }
+
+    // Save booking locally (simulate api)
+    function saveBooking(){
+      // basic validation
+      if(!selected.service || !selected.date || !selected.time || !selected.name || !selected.phone){ alert('Vui lòng điền đầy đủ thông tin.'); return; }
+      const bookings = JSON.parse(localStorage.getItem('kiosk_bookings_v1')||'[]');
+      // simple conflict check
+      const conflict = bookings.find(b=> b.date===selected.date && b.time===selected.time && b.service===selected.service);
+      if(conflict){ alert('Khung giờ đã được đặt. Vui lòng chọn khung khác.'); return; }
+      const id = 'BK'+Date.now();
+      const payload = {id, ...selected, created: new Date().toISOString()};
+      bookings.push(payload);
+      localStorage.setItem('kiosk_bookings_v1', JSON.stringify(bookings));
+      renderAvailableList();
+      alert('Đặt lịch thành công! Mã: '+id);
+      // auto-generate ticket in summary
+      summaryEl.innerHTML += `<br><strong>Mã đặt lịch:</strong> ${id}`;
+      // store current booking for printing/QR
+      localStorage.setItem('current_booking', JSON.stringify(payload));
+    }
+
+    function renderAvailableList(){
+      const bookings = JSON.parse(localStorage.getItem('kiosk_bookings_v1')||'[]');
+      const next7 = [];
+      for(let i=0;i<7;i++){
+        const d = new Date(); d.setDate(d.getDate()+i);
+        const dstr = d.toISOString().slice(0,10);
+        const count = bookings.filter(b=>b.date===dstr).length;
+        next7.push({date:dstr,count});
+      }
+      availableList.innerHTML = next7.map(x=>`${formatDate(x.date)}: ${x.count} đặt`).join('<br>');
+    }
+
+    // Print ticket
+    function printTicket(){
+      const cur = JSON.parse(localStorage.getItem('current_booking')||'null');
+      if(!cur){ alert('Chưa có đặt lịch để in.'); return; }
+      const w = window.open('','_blank');
+      const html = `<!doctype html><html><head><meta charset="utf-8"><title>Phiếu đặt lịch</title><style>body{font-family:Arial;padding:28px;color:#024}.id{font-size:20px;font-weight:700}.big{font-size:48px;font-weight:800;margin:8px 0}</style></head><body><h2>Phiếu đặt lịch</h2><div class="id">Mã: ${cur.id}</div><div class="big">${cur.time}</div><div>Ngày: ${new Date(cur.date).toLocaleDateString()}</div><div>Dịch vụ: ${cur.service}</div><div>Họ tên: ${cur.name}</div><div>Liên hệ: ${cur.phone}</div></body></html>`;
+      w.document.write(html); w.document.close(); w.print();
+    }
+
+    // Simple QR (text -> data URL using canvas)
+    function showQR(){
+      const cur = JSON.parse(localStorage.getItem('current_booking')||'null');
+      if(!cur){ alert('Chưa có đặt lịch.'); return; }
+      const text = `ID:${cur.id}|${cur.service}|${cur.date}|${cur.time}|${cur.name}`;
+      // generate QR using tiny qrcode algorithm (draw using canvas). We'll use a simple library-free approach by using Google Chart API image (no external libs but network required).
+      const wrap = document.getElementById('qrWrap');
+      wrap.innerHTML = '';
+      const img = document.createElement('img');
+      const url = 'https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=' + encodeURIComponent(text);
+      img.src = url; img.alt='QR code';
+      wrap.appendChild(img);
+    }
+
+    // Event wiring
+    dateEl.addEventListener('change', ()=>{ renderSlots(); updateSummary(); });
+    serviceEl.addEventListener('change', updateSummary);
+    document.getElementById('name').addEventListener('input', updateSummary);
+    document.getElementById('phone').addEventListener('input', updateSummary);
+    document.getElementById('people').addEventListener('change', updateSummary);
+
+    document.getElementById('confirmBtn').addEventListener('click', ()=>{ updateSummary(); saveBooking(); });
+    document.getElementById('clearBtn').addEventListener('click', ()=>{ document.getElementById('service').value=''; document.getElementById('name').value=''; document.getElementById('phone').value=''; selected={}; renderSlots(); updateSummary(); });
+    document.getElementById('printTicket').addEventListener('click', printTicket);
+    document.getElementById('showQR').addEventListener('click', showQR);
+
+    // init
+    renderSlots(); renderAvailableList(); updateSummary();
+  </script>
+</body>
+</html>
