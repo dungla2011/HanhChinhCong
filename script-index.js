@@ -5,11 +5,31 @@ const pages = [
         title: '01 - Trang Chủ Hành Chính Công',
         file: '01-trang-chu.html'
     },
-    {
-        id: 'trang-dang-phat-trien',
-        title: '02 - Trang Đang Phát Triển',
-        file: 'pages/02-page.html'
+     {
+        id: 'lay_so',
+        title: '02 - lấy số',
+        file: '01-lay-so.html'
     },
+     {
+        id: 'chat_luong_can_bo',
+        title: '03 - Đánh giá cán bộ trên kiosk',
+        file: '01-dang-gia.html'
+    },
+    {
+        id: 'chat_luong_dich_vu',
+        title: '04 - Đánh giá chất lượng  trên kiosk',
+        file: '01-dang-gia-chat-luong.html'
+    },
+     {
+        id: 'huong_dan',
+        title: '05 - Hướng dẫn',
+        file: '01-huong_dan.html'
+    },
+    // {
+    //     id: 'trang-dang-phat-trien',
+    //     title: '02 - Trang Đang Phát Triển',
+    //     file: 'pages/02-page.html'
+    // },
     {
         id: 'trang-3',
         title: '03 - Trang Khác',

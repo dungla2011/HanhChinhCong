@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Đánh giá Cán bộ - Kiosk (Mẫu)</title>
+  <style>
+    :root{
+      --bg:#0f1724; --card:#0b1220; --accent:#0ea5ff; --muted:#9aa6b2; --success:#10b981;
+    }
+  .kiosk{max-width:1100px;margin:18px auto;padding:18px;display:flex;flex-direction:column;gap:18px}
+    header{display:flex;align-items:center;justify-content:space-between}
+    header h1{font-size:28px;margin:0}
+    .card{padding:14px;border-radius:12px;box-shadow:0 6px 18px rgba(2,6,23,0.6)}
+    /* officers grid */
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+    .officer{display:flex;flex-direction:column;align-items:center;gap:10px;padding:14px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);cursor:pointer;touch-action:manipulation}
+    .officer.selected{outline:3px solid rgba(14,165,255,0.14);transform:translateY(-4px)}
+    .avatar{width:84px;height:84px;border-radius:999px;background:#0b2233;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:28px;color:var(--accent)}
+    .name{font-weight:600;text-align:center}
+    .role{font-size:13px;color:var(--muted)}
+
+    /* rating area */
+    .rating-row{display:flex;gap:10px;justify-content:center;align-items:center}
+    .emoji-btn{width:84px;height:84px;border-radius:14px;border:none;background:transparent;display:flex;align-items:center;justify-content:center;font-size:36px;cursor:pointer;transition:transform .12s, box-shadow .12s}
+    .emoji-btn:active{transform:scale(.97)}
+    .emoji-btn.selected{box-shadow:0 8px 18px rgba(14,165,255,0.12);transform:translateY(-6px)}
+
+    textarea{width:100%;min-height:110px;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:rgba(255,255,255,0.02);color:inherit;resize:none}
+
+    .controls{display:flex;gap:12px;justify-content:center}
+    .btn{padding:14px 18px;border-radius:10px;border:none;font-weight:700;cursor:pointer}
+    .btn.primary{background:var(--accent);color:#04233a}
+    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)}
+
+    /* mobile full-screen friendly */
+    @media (max-width:700px){.kiosk{padding:12px;margin:8px}.avatar{width:68px;height:68px;font-size:22px}.emoji-btn{width:64px;height:64px;font-size:28px}.card{padding:12px}}
+
+    /* thank you overlay */
+    .overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:linear-gradient(180deg, rgba(2,6,23,0.6), rgba(2,6,23,0.9));z-index:50}
+    .overlay.show{display:flex}
+    .thanks{background:#042e3f;padding:28px;border-radius:12px;color:#e6f7ff;text-align:center;max-width:420px}
+    .small{font-size:13px;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <div class="kiosk">
+    <header>
+      <h1>Đánh giá Cán bộ</h1>
+      <div class="small">Chạm vào ảnh để chọn cán bộ • Giao diện mẫu cho kiosk</div>
+    </header>
+
+    <!-- Step 1: danh sách cán bộ -->
+    <section class="card" id="step-list">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <strong>Chọn cán bộ cần đánh giá</strong>
+        <input id="search" placeholder="Tìm tên hoặc bộ phận" style="padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:inherit">
+      </div>
+      <div class="grid" id="officerGrid">
+        <!-- officers injected by JS -->
+      </div>
+    </section>
+
+    <!-- Step 2: đánh giá -->
+    <section class="card" id="step-rate" style="display:none">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div class="avatar" id="selectedAvatar">A</div>
+        <div style="flex:1">
+          <div class="name" id="selectedName">Nguyễn Văn A</div>
+          <div class="role" id="selectedRole">Cán bộ tiếp nhận hồ sơ</div>
+        </div>
+        <button class="btn ghost" id="backToList">← Chọn lại</button>
+      </div>
+
+      <hr style="opacity:.06;margin:12px 0">
+
+      <div style="text-align:center;margin-bottom:10px"><strong>Đánh giá mức độ hài lòng</strong></div>
+      <div class="rating-row" id="ratingRow">
+        <button class="emoji-btn" data-value="5" aria-label="Rất hài lòng">😍</button>
+        <button class="emoji-btn" data-value="4" aria-label="Hài lòng">😊</button>
+        <button class="emoji-btn" data-value="3" aria-label="Bình thường">😐</button>
+        <button class="emoji-btn" data-value="2" aria-label="Không hài lòng">☹️</button>
+        <button class="emoji-btn" data-value="1" aria-label="Rất không hài lòng">😡</button>
+      </div>
+
+      <div style="margin-top:12px">
+        <label for="comment"><strong>Ý kiến đóng góp (không bắt buộc)</strong></label>
+        <textarea id="comment" placeholder="Nhập góp ý... (ví dụ: phục vụ nhanh, nhiệt tình, cần cải thiện...)" maxlength="600"></textarea>
+      </div>
+
+      <div class="controls" style="margin-top:12px">
+        <button class="btn ghost" id="cancel">Hủy</button>
+        <button class="btn primary" id="submit">Gửi đánh giá</button>
+      </div>
+    </section>
+
+    <!-- overlay cảm ơn -->
+    <div class="overlay" id="overlay">
+      <div class="thanks">
+        <div style="font-size:36px;">🙏</div>
+        <h2>Cảm ơn bạn đã gửi phản hồi!</h2>
+        <p class="small">Đánh giá của bạn đã được ghi nhận. Màn hình sẽ quay về trang chính trong giây lát.</p>
+      </div>
+    </div>
+
+    <footer style="text-align:center;color:var(--muted);font-size:13px">Mẫu giao diện kiosk • Phiên bản demo</footer>
+  </div>
+
+  <script>
+    // Dữ liệu mẫu cán bộ
+    const officers = [
+      {id:1,name:'Nguyễn Văn A', role:'Cán bộ tiếp nhận hồ sơ'},
+      {id:2,name:'Trần Thị B', role:'Tư vấn viên'},
+      {id:3,name:'Lê Văn C', role:'Cán bộ xét duyệt'},
+      {id:4,name:'Phạm Thị D', role:'Thủ quỹ'},
+      {id:5,name:'Hoàng Văn E', role:'Chuyên viên pháp lý'},
+      {id:6,name:'Vũ Thị F', role:'Cán bộ tiếp nhận'}
+    ];
+
+    const grid = document.getElementById('officerGrid');
+    const search = document.getElementById('search');
+    const stepList = document.getElementById('step-list');
+    const stepRate = document.getElementById('step-rate');
+    const selectedAvatar = document.getElementById('selectedAvatar');
+    const selectedName = document.getElementById('selectedName');
+    const selectedRole = document.getElementById('selectedRole');
+    const backToList = document.getElementById('backToList');
+    const ratingRow = document.getElementById('ratingRow');
+    const comment = document.getElementById('comment');
+    const cancel = document.getElementById('cancel');
+    const submit = document.getElementById('submit');
+    const overlay = document.getElementById('overlay');
+
+    let selectedOfficer = null;
+    let selectedRating = null;
+
+    function renderOfficers(list){
+      grid.innerHTML = '';
+      list.forEach(o=>{
+        const div = document.createElement('div');
+        div.className = 'officer';
+        div.tabIndex = 0;
+        div.innerHTML = `
+          <div class="avatar">${initials(o.name)}</div>
+          <div class="name">${o.name}</div>
+          <div class="role">${o.role}</div>
+        `;
+        div.addEventListener('click', ()=>selectOfficer(o));
+        div.addEventListener('keydown', (e)=>{ if(e.key==='Enter'||e.key===' ') selectOfficer(o); });
+        grid.appendChild(div);
+      });
+    }
+
+    function initials(name){
+      return name.split(' ').map(x=>x[0]||'').slice(-2).join('').toUpperCase();
+    }
+
+    function selectOfficer(o){
+      selectedOfficer = o;
+      // mark selected in grid
+      Array.from(grid.children).forEach(c=>{ c.classList.toggle('selected', c.querySelector('.name').innerText===o.name); })
+      // show rating step
+      selectedAvatar.textContent = initials(o.name);
+      selectedName.textContent = o.name;
+      selectedRole.textContent = o.role;
+      stepList.style.display = 'none';
+      stepRate.style.display = 'block';
+      // reset rating
+      selectedRating = null;
+      Array.from(ratingRow.children).forEach(b=>b.classList.remove('selected'));
+      comment.value = '';
+    }
+
+    backToList.addEventListener('click', ()=>{ stepRate.style.display='none'; stepList.style.display='block'; });
+    cancel.addEventListener('click', ()=>{ stepRate.style.display='none'; stepList.style.display='block'; });
+
+    // rating buttons
+    Array.from(ratingRow.children).forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        selectedRating = parseInt(btn.dataset.value);
+        Array.from(ratingRow.children).forEach(b=>b.classList.toggle('selected', b===btn));
+      });
+    });
+
+    submit.addEventListener('click', ()=>{
+      if(!selectedOfficer){ alert('Vui lòng chọn cán bộ để đánh giá.'); return; }
+      if(!selectedRating){ if(!confirm('Bạn chưa chọn mức độ hài lòng. Gửi đánh giá mà không chọn mức độ?')) return; }
+      const payload = {
+        officerId: selectedOfficer.id,
+        officerName: selectedOfficer.name,
+        rating: selectedRating || null,
+        comment: comment.value.trim() || null,
+        timestamp: new Date().toISOString()
+      };
+
+      // thử gửi lên server (endpoint demo), nếu lỗi thì lưu vào localStorage
+      fetch('/api/kiosk/submit-feedback', {
+        method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)
+      }).then(r=>{
+        if(r.ok) return r.json();
+        throw new Error('server');
+      }).then(()=>showThanks()).catch(()=>{
+        // lưu tạm
+        const pending = JSON.parse(localStorage.getItem('kiosk_pending')||'[]');
+        pending.push(payload);
+        localStorage.setItem('kiosk_pending', JSON.stringify(pending));
+        showThanks();
+      });
+    });
+
+    function showThanks(){
+      overlay.classList.add('show');
+      // reset selection after delay and return to home
+      setTimeout(()=>{
+        overlay.classList.remove('show');
+        stepRate.style.display='none';
+        stepList.style.display='block';
+        selectedOfficer = null; selectedRating = null; comment.value='';
+        Array.from(grid.children).forEach(c=>c.classList.remove('selected'));
+      }, 4200);
+    }
+
+    // search
+    search.addEventListener('input', ()=>{
+      const q = search.value.trim().toLowerCase();
+      renderOfficers(officers.filter(o=>o.name.toLowerCase().includes(q) || o.role.toLowerCase().includes(q)));
+    });
+
+    // initial render
+    renderOfficers(officers);
+
+    // accessibility: allow full-screen kiosk behavior
+    document.addEventListener('keydown', (e)=>{
+      // ESC returns to main
+      if(e.key==='Escape'){
+        stepRate.style.display='none'; stepList.style.display='block';
+      }
+    });
+
+    // optional: attempt resend of pending feedback when network is available
+    window.addEventListener('online', ()=>{
+      const pending = JSON.parse(localStorage.getItem('kiosk_pending')||'[]');
+      if(!pending.length) return;
+      pending.forEach(p=>{
+        fetch('/api/kiosk/submit-feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)})
+        .then(r=>{ if(r.ok){
+          const cur = JSON.parse(localStorage.getItem('kiosk_pending')||'[]').filter(x=>x.timestamp!==p.timestamp);
+          localStorage.setItem('kiosk_pending', JSON.stringify(cur));
+        }}).catch(()=>{});
+      });
+    });
+  </script>
+</body>
+</html>

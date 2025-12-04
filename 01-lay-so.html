@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kiosk Lấy Số Theo Quầy</title>
+<style>
+  :root{
+    --bg:#f3f6fb;
+    --primary:#004aad;
+    --accent:#ffcc00;
+    --muted:#6b7280;
+    --card:#ffffff;
+  }
+  html,body{
+    height:100%;
+    margin:0;
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    background:var(--bg);
+    -webkit-user-select:none;
+    user-select:none;
+  }
+
+  /* Layout */
+  .wrap{
+    display:flex;
+    gap:20px;
+    height:100%;
+    padding:20px;
+    box-sizing:border-box;
+  }
+  .left{
+    flex:1 1 60%;
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+  }
+  .right{
+    width:380px;
+    max-width:38%;
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+  }
+
+  header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:var(--card);
+    padding:18px;
+    border-radius:16px;
+    box-shadow:0 6px 18px rgba(16,24,40,0.06);
+  }
+  header h1{
+    margin:0;
+    font-size:28px;
+    color:var(--primary);
+  }
+  header .sub{
+    color:var(--muted);
+    font-size:14px;
+  }
+
+  /* Quầy grid */
+  .counters{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px,1fr));
+    gap:16px;
+  }
+  .counter{
+    background:linear-gradient(180deg,#fff,#fbfdff);
+    border-radius:14px;
+    padding:18px;
+    box-shadow:0 8px 20px rgba(2,6,23,0.06);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .counter .title{
+    font-weight:700;
+    color:var(--primary);
+    font-size:20px;
+    margin-bottom:12px;
+  }
+  .counter .current{
+    font-size:46px;
+    font-weight:800;
+    color:#d12b2b;
+    margin-bottom:12px;
+  }
+  .counter button{
+    width:100%;
+    padding:16px;
+    border-radius:12px;
+    border:none;
+    font-weight:800;
+    font-size:20px;
+    cursor:pointer;
+    background:var(--accent);
+    box-shadow:0 6px 0 rgba(0,0,0,0.06);
+  }
+  .counter small{ color:var(--muted); margin-top:8px; }
+
+  /* Controls */
+  .controls{
+    display:flex;
+    gap:12px;
+    align-items:center;
+  }
+  .controls select, .controls input{
+    padding:12px 14px;
+    border-radius:10px;
+    border:1px solid #e6eefb;
+    font-size:16px;
+  }
+
+  /* Ticket modal */
+  .modal-backdrop{
+    position:fixed; inset:0; display:none;
+    align-items:center; justify-content:center;
+    background:rgba(3,10,29,0.45); z-index:50;
+  }
+  .ticket{
+    background:var(--card);
+    padding:22px;
+    border-radius:14px;
+    width:360px; text-align:center;
+    box-shadow:0 20px 50px rgba(2,6,23,0.4);
+  }
+  .ticket h2{ margin:0; color:var(--primary); font-size:20px; }
+  .ticket .big{ font-size:64px; font-weight:900; color:#d12b2b; margin:14px 0; }
+  .ticket .meta{ color:var(--muted); font-size:14px; margin-bottom:12px;}
+  .ticket .btns{ display:flex; gap:8px; justify-content:center; }
+  .ticket button{ padding:10px 14px; border-radius:10px; border:none; font-weight:700; cursor:pointer; }
+  .btn-print{ background:var(--primary); color:white; }
+  .btn-close{ background:#e6eefb; color:var(--primary); }
+
+  /* Queue board (right) */
+  .board{
+    background:var(--card);
+    border-radius:14px;
+    padding:18px;
+    box-shadow:0 8px 20px rgba(2,6,23,0.06);
+    flex:1;
+    display:flex; flex-direction:column;
+    gap:12px;
+  }
+  .board h3{ margin:0; color:var(--primary); }
+  .list{ display:flex; flex-direction:column; gap:10px; margin-top:6px; }
+  .list-item{
+    padding:12px; border-radius:10px; background:#fbfdff;
+    display:flex; align-items:center; justify-content:space-between;
+    font-weight:700;
+  }
+  .list-item .left{ display:flex; gap:12px; align-items:center; }
+  .badge{
+    min-width:56px; height:56px; display:flex; align-items:center; justify-content:center;
+    border-radius:10px; font-size:20px; font-weight:900; background:var(--accent);
+  }
+  .meta-small{ color:var(--muted); font-size:13px; font-weight:600; }
+
+  /* Responsive */
+  @media(max-width:900px){
+    .wrap{ flex-direction:column; padding:12px;}
+    .right{ width:100%; max-width:none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="left">
+    <header>
+      <div>
+        <h1>KIOSK LẤY SỐ - THEO QUẦY</h1>
+        <div class="sub">Chọn quầy, nhấn "Lấy số" — Vé sẽ in/hiện thị cho bạn</div>
+      </div>
+      <div class="sub">Màn hình: <strong id="timeNow"></strong></div>
+    </header>
+
+    <!-- Controls: (not required) -->
+    <div class="controls" style="margin-top:8px;">
+      <label for="serviceSelect">Chọn dịch vụ / quầy:</label>
+      <select id="serviceSelect"></select>
+
+      <label for="padding">Số chữ số:</label>
+      <input id="padding" type="number" min="1" max="6" value="3" style="width:88px;">
+    </div>
+
+    <!-- Grid of counters -->
+    <div class="counters" id="countersContainer" style="margin-top:8px;"></div>
+  </div>
+
+  <div class="right">
+    <div class="board">
+      <h3>Bảng gọi số (MỚI NHẤT)</h3>
+      <div class="list" id="callList">
+        <!-- items injected -->
+      </div>
+    </div>
+
+    <div class="board" style="align-items:center;justify-content:center">
+      <div style="text-align:center">
+        <div style="font-weight:800; font-size:20px; color:var(--primary)">Hướng dẫn</div>
+        <div class="meta-small" style="margin-top:8px">
+          1. Chạm hoặc chọn quầy → 2. Nhấn "Lấy số" → 3. Lắng nghe và chờ gọi.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal ticket -->
+<div class="modal-backdrop" id="modal">
+  <div class="ticket" role="dialog" aria-modal="true">
+    <h2 id="modalService">Quầy A</h2>
+    <div class="big" id="modalNumber">A001</div>
+    <div class="meta">Ngày: <span id="modalDate"></span> • Mã vé: <span id="modalTicketId"></span></div>
+    <div class="meta-small">Vui lòng chờ gọi. Giữ vé để vào quầy khi được gọi.</div>
+    <div class="btns" style="margin-top:10px;">
+      <button class="btn-print" id="doPrint">IN VÉ</button>
+      <button class="btn-close" id="closeModal">ĐÓNG</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/*
+  Cấu hình mặc định quầy (có thể thay đổi)
+  Mỗi quầy có: id (mã), name (tên hiển thị), prefix (ký tự trên vé), start (bắt đầu)
+*/
+const DEFAULT_COUNTERS = [
+  { id: 'A', name: 'Quầy 1 - Thông tin', prefix: 'A', start: 1 },
+  { id: 'B', name: 'Quầy 2 - Thanh toán', prefix: 'B', start: 1 },
+  { id: 'C', name: 'Quầy 3 - Chứng thực', prefix: 'C', start: 1 },
+  { id: 'D', name: 'Quầy 4 - Khiếu nại', prefix: 'D', start: 1 }
+];
+
+const STORAGE_KEY = 'kiosk_counters_state_v1';
+const CALL_LIST_MAX = 8; // hiển thị mấy số gần nhất
+
+// --- Utility ---
+function nowStr(){ 
+  const d=new Date();
+  return d.toLocaleString('vi-VN',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+}
+
+// Load state from localStorage or init from DEFAULT_COUNTERS
+function loadState(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(!raw) {
+    // build initial map: last = start-1
+    const map = {};
+    DEFAULT_COUNTERS.forEach(c => map[c.id] = { ...c, last: c.start - 1 });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
+    return map;
+  }
+  try {
+    const parsed = JSON.parse(raw);
+    // ensure any DEFAULT counters exist
+    DEFAULT_COUNTERS.forEach(c => {
+      if(!parsed[c.id]) parsed[c.id] = { ...c, last: c.start - 1 };
+    });
+    return parsed;
+  } catch(e){
+    console.error(e);
+    return {};
+  }
+}
+function saveState(state){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+// Pad number with leading zeros
+function pad(num, len){ return String(num).padStart(len, '0'); }
+
+// --- App state ---
+let state = loadState();
+let callHistory = []; // danh sách các vé mới nhất (obj: {id, display, time})
+
+// UI refs
+const countersContainer = document.getElementById('countersContainer');
+const serviceSelect = document.getElementById('serviceSelect');
+const paddingInput = document.getElementById('padding');
+const callList = document.getElementById('callList');
+const modal = document.getElementById('modal');
+const modalService = document.getElementById('modalService');
+const modalNumber = document.getElementById('modalNumber');
+const modalDate = document.getElementById('modalDate');
+const modalTicketId = document.getElementById('modalTicketId');
+const doPrintBtn = document.getElementById('doPrint');
+const closeModalBtn = document.getElementById('closeModal');
+const timeNow = document.getElementById('timeNow');
+
+function renderTime(){ timeNow.innerText = new Date().toLocaleTimeString('vi-VN'); }
+setInterval(renderTime,1000); renderTime();
+
+// Render quầy vào grid & select
+function renderCounters(){
+  countersContainer.innerHTML = '';
+  serviceSelect.innerHTML = '';
+  const padLen = Number(paddingInput.value) || 3;
+  Object.values(state).forEach(counter => {
+    // card
+    const card = document.createElement('div'); card.className='counter';
+    const title = document.createElement('div'); title.className='title'; title.innerText = counter.name;
+    const current = document.createElement('div'); current.className='current';
+    current.innerText = counter.prefix + pad(counter.last, padLen);
+    const btn = document.createElement('button'); btn.innerText = 'LẤY SỐ';
+    btn.onclick = ()=> takeNumber(counter.id);
+    const small = document.createElement('small'); small.innerText = 'Mã: ' + counter.id + ' • Bắt đầu: ' + counter.start;
+    card.appendChild(title); card.appendChild(current); card.appendChild(btn); card.appendChild(small);
+    countersContainer.appendChild(card);
+
+    // select option
+    const opt = document.createElement('option'); opt.value = counter.id; opt.innerText = counter.name;
+    serviceSelect.appendChild(opt);
+  });
+}
+
+// Lấy số cho quầy
+function takeNumber(counterId){
+  const padLen = Number(paddingInput.value) || 3;
+  const ctr = state[counterId];
+  if(!ctr) return alert('Quầy không tồn tại');
+  ctr.last = (ctr.last || (ctr.start-1)) + 1;
+  saveState(state);
+
+  const display = ctr.prefix + pad(ctr.last, padLen);
+  const ticketId = `${ctr.id}-${Date.now()}`;
+  const item = { id: ticketId, counterId: ctr.id, display, time: new Date().toISOString() };
+
+  // push to call history
+  callHistory.unshift(item);
+  if(callHistory.length > 50) callHistory.pop(); // keep lease
+  renderCallList();
+
+  // show modal ticket
+  modalService.innerText = ctr.name;
+  modalNumber.innerText = display;
+  modalDate.innerText = nowStr();
+  modalTicketId.innerText = ticketId;
+  modal.style.display = 'flex';
+
+  // play simple beep
+  beep();
+
+  // update grid display numbers
+  renderCounters();
+}
+
+// render recent calls on board
+function renderCallList(){
+  callList.innerHTML = '';
+  const max = CALL_LIST_MAX;
+  for(let i=0;i<Math.min(callHistory.length,max);i++){
+    const it = callHistory[i];
+    const li = document.createElement('div'); li.className='list-item';
+    const left = document.createElement('div'); left.className='left';
+    const badge = document.createElement('div'); badge.className='badge'; badge.innerText = it.display;
+    const meta = document.createElement('div'); meta.innerHTML = `<div style="font-size:15px;font-weight:800">${state[it.counterId].name}</div><div class="meta-small">${new Date(it.time).toLocaleTimeString('vi-VN')}</div>`;
+    left.appendChild(badge); left.appendChild(meta);
+    const right = document.createElement('div'); right.className='meta-small'; right.innerText = 'Vé: ' + it.id.slice(-6);
+    li.appendChild(left); li.appendChild(right);
+    callList.appendChild(li);
+  }
+  // if none, show placeholder
+  if(callHistory.length === 0){
+    const p = document.createElement('div'); p.className='meta-small'; p.style.color='#9aa4b2'; p.innerText = 'Chưa có vé nào được phát.';
+    callList.appendChild(p);
+  }
+}
+
+// Modal close & print handlers
+closeModalBtn.onclick = ()=> { modal.style.display='none'; };
+doPrintBtn.onclick = ()=>{
+  // Mở một cửa sổ in chỉ chứa vé
+  const html = `
+    <html><head><meta charset="utf-8"><title>Vé</title>
+    <style>
+      body{font-family:Arial;margin:12px}
+      .ticket{border:2px dashed #222;padding:12px;width:320px;}
+      h2{margin:4px 0;color:#004aad}
+      .num{font-size:48px;font-weight:900;color:#d12b2b;margin:8px 0}
+      .meta{font-size:12px;color:#444}
+    </style>
+    </head><body>${document.querySelector('.ticket').innerHTML}</body></html>
+  `;
+  const w = window.open('', '_blank', 'width=400,height=600');
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+  // in sau khi render
+  w.focus();
+  setTimeout(()=> w.print(), 400);
+};
+
+// Simple beep (Web Audio)
+function beep(){
+  try{
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = 'sine';
+    o.frequency.value = 880;
+    o.connect(g); g.connect(ctx.destination);
+    o.start();
+    g.gain.setValueAtTime(0.0001, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.1, ctx.currentTime + 0.01);
+    setTimeout(()=> {
+      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.18);
+      o.stop(ctx.currentTime + 0.19);
+    }, 200);
+  }catch(e){ /* ignore */ }
+}
+
+// Init
+function init(){
+  // load padding saved?
+  const savedPad = localStorage.getItem('kiosk_padding_len_v1');
+  if(savedPad) paddingInput.value = savedPad;
+
+  // populate counters from state
+  renderCounters();
+  renderCallList();
+
+  // listeners
+  paddingInput.addEventListener('change', ()=> {
+    localStorage.setItem('kiosk_padding_len_v1', paddingInput.value);
+    renderCounters();
+  });
+
+  // quick take number when select changed (if user presses space?)
+  serviceSelect.addEventListener('keydown', (e)=> { if(e.key==='Enter') takeNumber(serviceSelect.value); });
+
+  // hide modal when clicking backdrop
+  modal.addEventListener('click', (e)=> { if(e.target === modal) modal.style.display='none'; });
+
+  // for demo: auto focus first service
+  serviceSelect.selectedIndex = 0;
+}
+
+// Allow keyboard shortcuts (optional): numbers 1..9 -> take number for that index
+document.addEventListener('keydown', (e) => {
+  const idx = parseInt(e.key,10);
+  if(idx >=1 && idx <=9){
+    const keys = Object.keys(state);
+    if(keys[idx-1]) takeNumber(keys[idx-1]);
+  }
+});
+
+init();
+</script>
+</body>
+</html>
