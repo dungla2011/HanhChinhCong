@@ -6,7 +6,7 @@
   <title>Đặt lịch - Kiosk Dịch vụ công</title>
   <style>
     :root{--bg:#f4f7fb;--primary:#036;--accent:#0b5}
-    body{margin:0;font-family:Inter,system-ui,Arial;background:var(--bg);color:#024}
+    body{margin:0;font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;background:var(--bg);color:#024}
     .container{max-width:980px;margin:24px auto;padding:18px;background:#fff;border-radius:12px;box-shadow:0 8px 24px rgba(2,6,23,0.08)}
     h1{margin:0 0 8px 0}
     .grid{display:grid;grid-template-columns:1fr 340px;gap:18px}
@@ -198,7 +198,7 @@
       const cur = JSON.parse(localStorage.getItem('current_booking')||'null');
       if(!cur){ alert('Chưa có đặt lịch để in.'); return; }
       const w = window.open('','_blank');
-      const html = `<!doctype html><html><head><meta charset="utf-8"><title>Phiếu đặt lịch</title><style>body{font-family:Arial;padding:28px;color:#024}.id{font-size:20px;font-weight:700}.big{font-size:48px;font-weight:800;margin:8px 0}</style></head><body><h2>Phiếu đặt lịch</h2><div class="id">Mã: ${cur.id}</div><div class="big">${cur.time}</div><div>Ngày: ${new Date(cur.date).toLocaleDateString()}</div><div>Dịch vụ: ${cur.service}</div><div>Họ tên: ${cur.name}</div><div>Liên hệ: ${cur.phone}</div></body></html>`;
+      const html = `<!doctype html><html><head><meta charset="utf-8"><title>Phiếu đặt lịch</title><style>body{font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;padding:28px;color:#024}.id{font-size:20px;font-weight:700}.big{font-size:48px;font-weight:800;margin:8px 0}</style></head><body><h2>Phiếu đặt lịch</h2><div class="id">Mã: ${cur.id}</div><div class="big">${cur.time}</div><div>Ngày: ${new Date(cur.date).toLocaleDateString()}</div><div>Dịch vụ: ${cur.service}</div><div>Họ tên: ${cur.name}</div><div>Liên hệ: ${cur.phone}</div></body></html>`;
       w.document.write(html); w.document.close(); w.print();
     }
 
