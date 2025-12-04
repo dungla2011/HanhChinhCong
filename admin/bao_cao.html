@@ -6,11 +6,11 @@
   <title>Admin Kiosk - Dashboard</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    body {background:#f5f7fb;   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;}
+    body {background:#f5f7fb}
     .sidebar {height:100vh; position:fixed; width:260px;}
     .content {margin-left:280px; padding:24px}
     .kiosk-preview {background:#fff; border:1px solid #e3e6ef; border-radius:8px; padding:16px}
-    .ticket {font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding:12px; border:1px dashed #ccd; background:#fafafa; border-radius:6px}
+    .ticket {font-family:monospace; padding:12px; border:1px dashed #ccd; background:#fafafa; border-radius:6px}
   </style>
 </head>
 <body>
@@ -30,135 +30,217 @@
     </nav>
 
     <main class="content flex-grow-1">
-      <section id="dashboard">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <h3>Dashboard</h3>
-          <div>
-            <button class="btn btn-outline-secondary me-2" id="exportBtn">Export JSON</button>
-            <input type="file" id="importFile" accept="application/json" style="display:none">
-            <button class="btn btn-outline-secondary" id="importBtn">Import JSON</button>
-          </div>
+      <!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>KPI Report - Kiosk</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    body{background:#f7fafc;font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif}
+    .card{border-radius:12px}
+    .kpi-number{font-size:1.6rem;font-weight:700}
+    .muted{color:#6b7280}
+    .small{font-size:0.85rem}
+  </style>
+</head>
+<body>
+  <div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4>KPI Báo cáo - Tổng quan</h4>
+      <div>
+        <input type="date" id="date" class="form-control form-control-sm d-inline-block" style="width:180px">
+        <button id="refresh" class="btn btn-sm btn-primary ms-2">Làm mới</button>
+      </div>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-md-3">
+        <div class="card p-3">
+          <div class="muted small">Số lượt phục vụ (tổng/ngày)</div>
+          <div id="kpi-served" class="kpi-number">0</div>
+          <div class="muted small">(Theo dịch vụ/ca có bảng chi tiết bên dưới)</div>
         </div>
+      </div>
 
-        <div class="row g-3">
-          <div class="col-md-4">
-            <div class="card p-3">
-              <h6>Số đang chờ</h6>
-              <div class="display-6" id="waitingCount">0</div>
-              <small class="text-muted">Tổng số đang chờ xử lý</small>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="card p-3">
-              <h6>Số đã phục vụ hôm nay</h6>
-              <div class="display-6" id="servedCount">0</div>
-              <small class="text-muted">Đã gọi / in</small>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="card p-3">
-              <h6>Kiosk trực tuyến</h6>
-              <div class="display-6" id="onlineKiosks">0</div>
-              <small class="text-muted">Trạng thái kết nối</small>
-            </div>
-          </div>
+      <div class="col-md-3">
+        <div class="card p-3">
+          <div class="muted small">Thời gian chờ trung bình</div>
+          <div id="kpi-avg-wait" class="kpi-number">00:00</div>
+          <div class="muted small">(avg wait time)</div>
         </div>
+      </div>
 
-        <div class="row mt-4">
-          <div class="col-lg-8">
-            <div class="card p-3">
-              <h5>Danh sách chức năng / quầy</h5>
-              <div class="table-responsive">
-                <table class="table table-sm table-hover" id="queuesTable">
-                  <thead>
-                    <tr>
-                      <th>Id</th>
-                      <th>Tên chức năng</th>
-                      <th>Mã</th>
-                      <th>Ưu tiên</th>
-                      <th>Hành động</th>
-                    </tr>
-                  </thead>
-                  <tbody></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-lg-4">
-            <div class="card p-3">
-              <h5>Preview Kiosk</h5>
-              <div class="kiosk-preview mt-2">
-                <div class="text-center mb-2"><strong id="previewTitle">Chọn chức năng</strong></div>
-                <div id="previewDesc" class="text-muted small">Nội dung mô tả chức năng sẽ hiển thị ở đây.</div>
-                <hr>
-                <div class="ticket mt-2" id="ticketSample">-- Vé mẫu --</div>
-                <div class="mt-3 text-end">
-                  <button class="btn btn-sm btn-success" id="printSample">In thử</button>
-                </div>
-              </div>
-            </div>
-
-            <div class="card p-3 mt-3">
-              <h6>Cấu hình chung</h6>
-              <div class="mb-2">
-                <label class="form-label small">Thời gian chờ (giây)</label>
-                <input type="number" id="timeoutSec" class="form-control form-control-sm" value="30">
-              </div>
-              <button class="btn btn-sm btn-primary" id="saveSettings">Lưu cấu hình</button>
-            </div>
-          </div>
+      <div class="col-md-3">
+        <div class="card p-3">
+          <div class="muted small">Thời gian phục vụ trung bình</div>
+          <div id="kpi-avg-service" class="kpi-number">00:00</div>
+          <div class="muted small">(avg service time)</div>
         </div>
-      </section>
+      </div>
 
-      <section id="kiosks" class="mt-5">
-        <h4>Quản lý Kiosk</h4>
-        <div class="card p-3 mt-2">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <div>Danh sách Kiosk</div>
-            <button class="btn btn-sm btn-primary" id="addKioskBtn">Thêm Kiosk</button>
+      <div class="col-md-3">
+        <div class="card p-3">
+          <div class="muted small">Tỷ lệ no-show</div>
+          <div id="kpi-noshow" class="kpi-number">0%</div>
+          <div class="muted small">(Đặt hẹn nhưng không check-in)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 mt-3">
+      <div class="col-md-3">
+        <div class="card p-3">
+          <div class="muted small">Số lượng ưu tiên xử lý</div>
+          <div id="kpi-priority" class="kpi-number">0</div>
+          <div class="muted small">(Tickets marked priority)</div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="card p-3">
+          <div class="muted small">Tỷ lệ bỏ hẹn / hủy hẹn</div>
+          <div id="kpi-cancel-rate" class="kpi-number">0%</div>
+          <div class="muted small">(Canceled / Booked)</div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="card p-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <div><strong>Phân tích theo dịch vụ / ca</strong><div class="small muted">Số lượt & thời gian trung bình</div></div>
+            <div>
+              <select id="shiftSelect" class="form-select form-select-sm">
+                <option value="all">-- Tất cả ca --</option>
+                <option value="morning">Sáng</option>
+                <option value="afternoon">Chiều</option>
+                <option value="evening">Tối</option>
+              </select>
+            </div>
           </div>
-          <div class="table-responsive">
-            <table class="table table-sm" id="kioskTable">
-              <thead><tr><th>ID</th><th>Tên</th><th>IP</th><th>Trạng thái</th><th>Hành động</th></tr></thead>
-              <tbody></tbody>
+          <div class="mt-3" style="max-height:260px;overflow:auto">
+            <table class="table table-sm">
+              <thead><tr><th>Service</th><th>Lượt phục vụ</th><th>Avg Wait</th><th>Avg Service</th><th>No-show%</th><th>Priority</th><th>Cancel%</th></tr></thead>
+              <tbody id="serviceSummary"></tbody>
             </table>
           </div>
         </div>
-      </section>
+      </div>
+    </div>
 
-      <section id="templates" class="mt-5">
-        <h4>Giao diện & Nội dung</h4>
-        <div class="card p-3 mt-2">
-          <div class="mb-2">
-            <label class="form-label">Tiêu đề màn hình</label>
-            <input class="form-control" id="uiTitle" placeholder="VD: Xin chào công dân">
-          </div>
-          <div class="mb-2">
-            <label class="form-label">Mô tả ngắn</label>
-            <textarea class="form-control" id="uiDesc" rows="3"></textarea>
-          </div>
-          <button class="btn btn-sm btn-success" id="applyUi">Áp dụng</button>
+    <div class="row g-3 mt-3">
+      <div class="col-12">
+        <div class="card p-3">
+          <h6>Biểu đồ: Số lượt phục vụ theo dịch vụ</h6>
+          <div style="height:240px"><canvas id="servedChart"></canvas></div>
         </div>
-      </section>
+      </div>
+    </div>
 
-      <section id="users" class="mt-5">
-        <h4>Người dùng quản trị</h4>
-        <div class="card p-3 mt-2">
-          <div class="d-flex justify-content-between mb-2">
-            <div>Danh sách</div>
-            <button class="btn btn-sm btn-primary" id="addUserBtn">Thêm người dùng</button>
-          </div>
-          <ul class="list-group" id="usersList"></ul>
-        </div>
-      </section>
+  </div>
 
-      <section id="logs" class="mt-5">
-        <h4>Nhật ký hoạt động</h4>
-        <div class="card p-3 mt-2">
-          <pre id="logBox" style="height:200px; overflow:auto; background:#111; color:#0f0; padding:12px; border-radius:6px;">-- Không có bản ghi --</pre>
-        </div>
-      </section>
+  <script>
+    // Demo data generation
+    const services = [ {id:'S1',name:'Nộp hồ sơ'}, {id:'S2',name:'Cấp giấy'}, {id:'S3',name:'Tư vấn'} ];
+    const shifts = {
+      morning: {start:8,end:12},
+      afternoon: {start:12,end:17},
+      evening: {start:17,end:21}
+    };
+
+    const tickets = [];
+    (function gen(){
+      const today = new Date();
+      for(let i=1;i<=300;i++){
+        const svc = services[Math.floor(Math.random()*services.length)];
+        const hour = 8 + Math.floor(Math.random()*13); // 8..20
+        const min = Math.floor(Math.random()*60);
+        const issued = new Date(today.getFullYear(), today.getMonth(), today.getDate(), hour, min, Math.floor(Math.random()*60));
+        const booked = Math.random()<0.6; // 60% booked
+        const checkin = booked ? (Math.random()<0.85) : (Math.random()<0.2); // if booked, 85% check-in
+        const canceled = !checkin && booked && Math.random()<0.5; // half of not-checkin booked are cancel
+        const priority = Math.random()<0.08; // 8% priority
+        let start=null,end=null,served=false;
+        if(checkin && !canceled){
+          const wait = (Math.floor(Math.random()*20)+1)*60*1000; // 1-20 min
+          start = new Date(issued.getTime()+wait);
+          const servDur = (Math.floor(Math.random()*15)+1)*60*1000; //1-15 min
+          end = new Date(start.getTime()+servDur);
+          served = true;
+        }
+        const staffId = served? Math.ceil(Math.random()*8) : null;
+        tickets.push({id:'T'+String(i).padStart(4,'0'),service:svc.id,issued:issued.toISOString(),booked,checkin,canceled,priority,start:start?start.toISOString():null,end:end?end.toISOString():null,staffId});
+      }
+    })();
+
+    // helpers
+    function secs(a,b){ if(!a||!b) return null; return Math.round((new Date(b)-new Date(a))/1000); }
+    function fmtSecToMMSS(s){ if(s===null) return '-'; const m=Math.floor(s/60); const sec=s%60; return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`; }
+
+    // compute KPIs
+    function computeKPIs(filterShift='all'){
+      const date = document.getElementById('date').value || new Date().toISOString().slice(0,10);
+      let data = tickets.filter(t=>t.issued.slice(0,10)===date);
+      if(filterShift!=='all'){ const sh = shifts[filterShift]; data = data.filter(t=>{ const h = new Date(t.issued).getHours(); return h>=sh.start && h<sh.end; }); }
+
+      // overall
+      const servedCount = data.filter(t=>t.end).length;
+      const avgWait = (()=>{ const waits = data.map(t=>secs(t.issued,t.start)).filter(x=>x!==null); return waits.length?Math.round(waits.reduce((a,b)=>a+b,0)/waits.length):0; })();
+      const avgService = (()=>{ const s = data.map(t=>secs(t.start,t.end)).filter(x=>x!==null); return s.length?Math.round(s.reduce((a,b)=>a+b,0)/s.length):0; })();
+      const booked = data.filter(t=>t.booked).length;
+      const noShow = booked? data.filter(t=>t.booked && !t.checkin).length : 0;
+      const noshowRate = booked? Math.round(noShow/booked*10000)/100 : 0;
+      const priorityCount = data.filter(t=>t.priority).length;
+      const cancelRate = data.filter(t=>t.canceled).length ? Math.round(data.filter(t=>t.canceled).length/data.filter(t=>t.booked).length*10000)/100 : 0;
+
+      document.getElementById('kpi-served').innerText = servedCount;
+      document.getElementById('kpi-avg-wait').innerText = fmtSecToMMSS(avgWait);
+      document.getElementById('kpi-avg-service').innerText = fmtSecToMMSS(avgService);
+      document.getElementById('kpi-noshow').innerText = noshowRate + '%';
+      document.getElementById('kpi-priority').innerText = priorityCount;
+      document.getElementById('kpi-cancel-rate').innerText = isNaN(cancelRate)?'0%':cancelRate + '%';
+
+      // per-service summary
+      const tbody = document.getElementById('serviceSummary'); tbody.innerHTML='';
+      const chartLabels=[], chartData=[];
+      services.forEach(svc=>{
+        const arr = data.filter(t=>t.service===svc.id);
+        const served = arr.filter(t=>t.end).length;
+        const waits = arr.map(t=>secs(t.issued,t.start)).filter(x=>x!==null);
+        const avgW = waits.length?Math.round(waits.reduce((a,b)=>a+b,0)/waits.length):0;
+        const servs = arr.map(t=>secs(t.start,t.end)).filter(x=>x!==null);
+        const avgS = servs.length?Math.round(servs.reduce((a,b)=>a+b,0)/servs.length):0;
+        const bookedSvc = arr.filter(t=>t.booked).length;
+        const noshowSvc = bookedSvc? arr.filter(t=>t.booked && !t.checkin).length : 0;
+        const noshowPct = bookedSvc? Math.round(noshowSvc/bookedSvc*10000)/100 : 0;
+        const priority = arr.filter(t=>t.priority).length;
+        const cancelPct = bookedSvc? Math.round(arr.filter(t=>t.canceled).length/bookedSvc*10000)/100 : 0;
+        const tr = document.createElement('tr'); tr.innerHTML = `<td>${svc.name}</td><td>${served}</td><td>${fmtSecToMMSS(avgW)}</td><td>${fmtSecToMMSS(avgS)}</td><td>${noshowPct}%</td><td>${priority}</td><td>${cancelPct}%</td>`; tbody.appendChild(tr);
+
+        chartLabels.push(svc.name); chartData.push(served);
+      });
+
+      updateChart(chartLabels,chartData);
+    }
+
+    // chart
+    let servedChart;
+    function createChart(){ const ctx = document.getElementById('servedChart').getContext('2d'); servedChart = new Chart(ctx,{type:'bar',data:{labels:[],datasets:[{label:'Lượt phục vụ',data:[],backgroundColor:'rgba(54,162,235,0.6)'}]},options:{responsive:true,plugins:{legend:{display:false}}}}); }
+    function updateChart(labels,data){ servedChart.data.labels = labels; servedChart.data.datasets[0].data = data; servedChart.update(); }
+
+    // init
+    document.getElementById('date').value = new Date().toISOString().slice(0,10);
+    document.getElementById('refresh').addEventListener('click', ()=> computeKPIs(document.getElementById('shiftSelect').value));
+    document.getElementById('shiftSelect').addEventListener('change', ()=> computeKPIs(document.getElementById('shiftSelect').value));
+
+    createChart(); computeKPIs('all');
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
 
     </main>
   </div>
